@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
 import { DialogProvider } from "@/components/DialogProvider";
-import { FundProvider } from "@/components/FundProvider";
 import { Nav } from "@/components/Nav";
+import { StoreProvider } from "@/components/StoreProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "قرعه‌کشی وام خانگی",
-  description: "مدیریت صندوق و قرعه‌کشی وام خانگی و فامیلی",
+  title: "بلیط شانس",
+  description: "قرعه‌کشی آنلاین با خرید بلیط شانس و گردونه",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
       <head>
@@ -26,13 +22,13 @@ export default function RootLayout({
       </head>
       <body>
         <DialogProvider>
-        <FundProvider>
-          <Nav />
-          <main className="container">{children}</main>
-          <footer className="footer">
-            اطلاعات فقط در همین مرورگر ذخیره می‌شود · از بخش تنظیمات نسخه پشتیبان بگیرید
-          </footer>
-        </FundProvider>
+          <StoreProvider>
+            <Nav />
+            <main className="container">{children}</main>
+            <footer className="footer">
+              شماره برنده با تولید عدد تصادفی امن از بین همه بلیط‌ها انتخاب می‌شود
+            </footer>
+          </StoreProvider>
         </DialogProvider>
       </body>
     </html>

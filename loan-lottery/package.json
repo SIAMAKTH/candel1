@@ -1,12 +1,12 @@
 {
-  "name": "loan-lottery",
+  "name": "lucky-ticket",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test --experimental-strip-types lib/*.test.ts"
+    "test": "node --test --experimental-strip-types lib/raffle.test.ts"
   },
   "dependencies": {
     "next": "15.5.28",

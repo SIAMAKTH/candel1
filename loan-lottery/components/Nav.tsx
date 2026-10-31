@@ -2,35 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useFund } from "./FundProvider";
+import { useStore } from "./StoreProvider";
 
 const links = [
   { href: "/", label: "خانه" },
-  { href: "/draw", label: "قرعه‌کشی" },
-  { href: "/members", label: "اعضا" },
-  { href: "/history", label: "سوابق" },
-  { href: "/settings", label: "تنظیمات" },
+  { href: "/draws", label: "قرعه‌کشی‌ها" },
+  { href: "/winners", label: "برندگان" },
+  { href: "/my-tickets", label: "بلیط‌های من" },
+  { href: "/admin", label: "مدیریت" },
 ];
 
 export function Nav() {
   const pathname = usePathname();
-  const { state } = useFund();
+  const { store } = useStore();
+  const active = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
   return (
     <header className="header">
       <div className="container header-inner">
         <Link href="/" className="brand">
-          <span className="brand-icon" aria-hidden>
-            🏠
+          <span className="brand-ticket" aria-hidden>
+            🎟
           </span>
-          {state.settings.fundName}
+          {store.siteName}
         </Link>
         <nav className="nav">
           {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={pathname === l.href ? "active" : undefined}
-            >
+            <Link key={l.href} href={l.href} className={active(l.href) ? "active" : undefined}>
               {l.label}
             </Link>
           ))}

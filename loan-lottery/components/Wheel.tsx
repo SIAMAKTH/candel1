@@ -1,6 +1,8 @@
 "use client";
 
-import { faNum, type Entry } from "@/lib/lottery";
+import { faDigits } from "@/lib/raffle";
+
+export type WheelEntry = { number: number };
 
 const SIZE = 400;
 const C = SIZE / 2;
@@ -9,7 +11,7 @@ const R_FACE = 168;
 const BULBS = 24;
 
 type WheelProps = {
-  entries: Entry[];
+  entries: WheelEntry[];
   rotation: number;
   spinning: boolean;
   durationMs: number;
@@ -42,7 +44,13 @@ export function Wheel({
 }: WheelProps) {
   const n = Math.max(entries.length, 1);
   const seg = 360 / n;
-  const fontSize = Math.max(9, Math.min(30, 300 / n + 6));
+  const longest = Math.max(1, ...entries.map((e) => String(e.number).length));
+  // Short labels sit across the slice; long ones (ticket numbers) run along the radius.
+  const radial = longest > 2;
+  const chord = 2 * R_FACE * 0.68 * Math.sin((Math.min(seg, 180) * Math.PI) / 360);
+  const fontSize = radial
+    ? Math.max(8, Math.min(24, chord * 0.75, (R_FACE * 0.55) / (longest * 0.62)))
+    : Math.max(9, Math.min(30, 300 / n + 6));
 
   return (
     <svg
@@ -117,7 +125,10 @@ export function Wheel({
             const start = i * seg;
             const red = i % 2 === 0;
             const won = entry.number === winnerNumber;
-            const [tx, ty] = polar(R_FACE * 0.72, start + seg / 2);
+            const mid = start + seg / 2;
+            const [tx, ty] = polar(R_FACE * (radial ? 0.64 : 0.72), mid);
+            // Radial labels flip on the left half so none read upside down.
+            const angle = radial ? (mid < 180 ? mid - 90 : mid + 90) : mid;
             return (
               <g key={entry.number}>
                 {n === 1 ? (
@@ -139,14 +150,14 @@ export function Wheel({
                 <text
                   x={tx}
                   y={ty}
-                  transform={`rotate(${start + seg / 2} ${tx} ${ty})`}
+                  transform={`rotate(${angle} ${tx} ${ty})`}
                   textAnchor="middle"
                   dominantBaseline="central"
                   fontSize={fontSize}
                   fontWeight={800}
                   fill={red ? "#fff6e5" : "#c8102e"}
                 >
-                  {faNum(entry.number)}
+                  {faDigits(String(entry.number))}
                 </text>
                 {n > 1 && (() => {
                   const [dx, dy] = polar(R_FACE - 8, start);
@@ -176,10 +187,15 @@ export function Wheel({
 }
 
 // Rotation (degrees, clockwise) that lands the centre of slice `index` under the top pointer.
-export function targetRotation(current: number, index: number, count: number): number {
+export function targetRotation(
+  current: number,
+  index: number,
+  count: number,
+  jitterOn = true,
+): number {
   const seg = 360 / count;
   // Random offset inside the slice so it doesn't always stop dead centre.
-  const jitter = (Math.random() - 0.5) * seg * 0.6;
+  const jitter = jitterOn ? (Math.random() - 0.5) * seg * 0.6 : 0;
   const target = (360 - (index + 0.5) * seg + jitter + 360) % 360;
   const base = current - (current % 360);
   return base + 360 * 6 + target;

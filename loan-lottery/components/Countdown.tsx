@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { faNum } from "@/lib/lottery";
+import { faNum } from "@/lib/raffle";
 
 const UNITS: [string, number][] = [
   ["روز", 86_400_000],
@@ -10,18 +10,21 @@ const UNITS: [string, number][] = [
   ["ثانیه", 1000],
 ];
 
-export function Countdown({ target }: { target: string }) {
+function useNow(): number | null {
   const [now, setNow] = useState<number | null>(null);
-
   useEffect(() => {
     setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  return now;
+}
 
+export function Countdown({ target }: { target: string }) {
+  const now = useNow();
   const end = new Date(target).getTime();
   if (!target || Number.isNaN(end)) {
-    return <p className="countdown-note">زمان قرعه‌کشی بعدی هنوز تعیین نشده است.</p>;
+    return <p className="countdown-note">زمان قرعه‌کشی هنوز اعلام نشده است.</p>;
   }
   if (now !== null && end <= now) {
     return <p className="countdown-note">زمان قرعه‌کشی رسیده است!</p>;
@@ -41,5 +44,25 @@ export function Countdown({ target }: { target: string }) {
         );
       })}
     </div>
+  );
+}
+
+// "۳ روز مانده" style one-liner for cards.
+export function TimeLeft({ target }: { target: string }) {
+  const now = useNow();
+  const end = new Date(target).getTime();
+  if (!target || Number.isNaN(end) || now === null) return null;
+  const left = end - now;
+  if (left <= 0) return <span>زمان قرعه‌کشی رسیده</span>;
+  const days = Math.floor(left / 86_400_000);
+  const hours = Math.floor(left / 3_600_000);
+  return (
+    <span>
+      {days > 0
+        ? `${faNum(days)} روز مانده`
+        : hours > 0
+          ? `${faNum(hours)} ساعت مانده`
+          : `${faNum(Math.ceil(left / 60_000))} دقیقه مانده`}
+    </span>
   );
 }

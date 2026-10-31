@@ -14,7 +14,7 @@ import {
 
 const state: FundState = {
   ...emptyState,
-  settings: { fundName: "test", contribution: 500 },
+  settings: { fundName: "test", contribution: 500, nextDrawAt: "" },
   members: [
     { id: "a", name: "علی", phone: "", shares: 2, numbers: [1, 3] },
     { id: "b", name: "سارا", phone: "", shares: 1, numbers: [2] },

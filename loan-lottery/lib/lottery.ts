@@ -26,6 +26,8 @@ export type Round = {
 export type Settings = {
   fundName: string;
   contribution: number;
+  // Local date-time ("2026-11-05T20:00") of the next draw, or "".
+  nextDrawAt: string;
 };
 
 export type FundState = {
@@ -36,7 +38,7 @@ export type FundState = {
 };
 
 export const emptyState: FundState = {
-  settings: { fundName: "صندوق وام خانگی", contribution: 1_000_000 },
+  settings: { fundName: "صندوق وام خانگی", contribution: 1_000_000, nextDrawAt: "" },
   members: [],
   rounds: [],
   paidIds: [],
@@ -166,5 +168,6 @@ export function normalizeState(state: FundState): FundState {
     used.add(number);
     return { ...r, winnerNumber: number };
   });
-  return { ...state, members, rounds };
+  const settings = { ...state.settings, nextDrawAt: state.settings.nextDrawAt ?? "" };
+  return { ...state, settings, members, rounds };
 }

@@ -14,8 +14,15 @@ type FundContextValue = {
 
 const FundContext = createContext<FundContextValue | null>(null);
 
-export function FundProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<FundState>(emptyState);
+export function FundProvider({
+  children,
+  initialState = emptyState,
+}: {
+  children: React.ReactNode;
+  // Used when nothing is saved yet.
+  initialState?: FundState;
+}) {
+  const [state, setState] = useState<FundState>(initialState);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

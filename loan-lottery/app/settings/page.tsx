@@ -1,19 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDialog } from "@/components/DialogProvider";
 import { useFund } from "@/components/FundProvider";
 import { emptyState, faNum, isFundState, parseNumber } from "@/lib/lottery";
 
 export default function SettingsPage() {
   const { state, ready, update, replace } = useFund();
+  const { ask, notify } = useDialog();
   const [fundName, setFundName] = useState("");
   const [contribution, setContribution] = useState("");
+  const [nextDrawAt, setNextDrawAt] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
     setFundName(state.settings.fundName);
     setContribution(faNum(state.settings.contribution));
+    setNextDrawAt(state.settings.nextDrawAt);
   }, [ready, state.settings]);
 
   if (!ready) return <p className="muted">در حال بارگذاری…</p>;
@@ -22,12 +26,16 @@ export default function SettingsPage() {
     e.preventDefault();
     const amount = parseNumber(contribution);
     if (amount <= 0) {
-      alert("مبلغ قسط معتبر نیست.");
+      notify("مبلغ قسط معتبر نیست.");
       return;
     }
     update((s) => ({
       ...s,
-      settings: { fundName: fundName.trim() || emptyState.settings.fundName, contribution: amount },
+      settings: {
+        fundName: fundName.trim() || emptyState.settings.fundName,
+        contribution: amount,
+        nextDrawAt,
+      },
     }));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -50,15 +58,19 @@ export default function SettingsPage() {
     try {
       const parsed = JSON.parse(await file.text());
       if (!isFundState(parsed)) throw new Error("invalid");
-      if (!confirm("اطلاعات فعلی با فایل پشتیبان جایگزین شود؟")) return;
+      if (!(await ask("اطلاعات فعلی با فایل پشتیبان جایگزین شود؟"))) return;
       replace(parsed);
     } catch {
-      alert("فایل پشتیبان معتبر نیست.");
+      notify("فایل پشتیبان معتبر نیست.");
     }
   }
 
-  function reset() {
-    if (!confirm("همه اعضا و سوابق حذف شوند؟ این کار قابل بازگشت نیست.")) return;
+  async function reset() {
+    const ok = await ask("همه اعضا و سوابق حذف شوند؟ این کار قابل بازگشت نیست.", {
+      confirmLabel: "حذف همه",
+      danger: true,
+    });
+    if (!ok) return;
     replace(emptyState);
   }
 
@@ -80,6 +92,16 @@ export default function SettingsPage() {
               onChange={(e) => setContribution(e.target.value)}
               onBlur={() => setContribution(faNum(parseNumber(contribution)))}
               inputMode="numeric"
+            />
+          </label>
+          <label>
+            زمان قرعه‌کشی بعدی
+            <input
+              id="next-draw-at"
+              type="datetime-local"
+              value={nextDrawAt}
+              onChange={(e) => setNextDrawAt(e.target.value)}
+              dir="ltr"
             />
           </label>
           <div className="row">

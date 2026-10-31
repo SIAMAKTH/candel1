@@ -15,6 +15,8 @@ type WheelProps = {
   durationMs: number;
   winnerNumber: number | null;
   onSpinEnd: () => void;
+  // Slow decorative rotation (homepage).
+  idle?: boolean;
 };
 
 function polar(r: number, deg: number): [number, number] {
@@ -36,6 +38,7 @@ export function Wheel({
   durationMs,
   winnerNumber,
   onSpinEnd,
+  idle = false,
 }: WheelProps) {
   const n = Math.max(entries.length, 1);
   const seg = 360 / n;
@@ -95,6 +98,7 @@ export function Wheel({
 
       {/* Spinning face */}
       <g
+        className={idle ? "wheel-idle" : undefined}
         style={{
           transform: `rotate(${rotation}deg)`,
           transformOrigin: `${C}px ${C}px`,

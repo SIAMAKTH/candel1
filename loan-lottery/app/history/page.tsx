@@ -1,20 +1,26 @@
 "use client";
 
+import { useDialog } from "@/components/DialogProvider";
 import { useFund } from "@/components/FundProvider";
 import { faDate, faNum, toman } from "@/lib/lottery";
 
 export default function HistoryPage() {
   const { state, ready, update } = useFund();
+  const { ask } = useDialog();
 
   if (!ready) return <p className="muted">در حال بارگذاری…</p>;
 
   const rounds = [...state.rounds].reverse();
   const paidOut = state.rounds.reduce((sum, r) => sum + r.amount, 0);
 
-  function undoLast() {
+  async function undoLast() {
     const last = state.rounds.at(-1);
     if (!last) return;
-    if (!confirm(`نتیجه دوره ${faNum(last.number)} (${last.winnerName}) لغو شود؟`)) return;
+    const ok = await ask(`نتیجه دوره ${faNum(last.number)} (${last.winnerName}) لغو شود؟`, {
+      confirmLabel: "لغو قرعه‌کشی",
+      danger: true,
+    });
+    if (!ok) return;
     update((s) => ({
       ...s,
       rounds: s.rounds.slice(0, -1),

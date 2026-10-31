@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { useFund } from "./FundProvider";
 
 const links = [
-  { href: "/", label: "قرعه‌کشی" },
+  { href: "/", label: "خانه" },
+  { href: "/draw", label: "قرعه‌کشی" },
   { href: "/members", label: "اعضا" },
   { href: "/history", label: "سوابق" },
   { href: "/settings", label: "تنظیمات" },

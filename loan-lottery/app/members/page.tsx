@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useDialog } from "@/components/DialogProvider";
 import { useFund } from "@/components/FundProvider";
 import { faNum, newId, nextNumbers, parseNumber, toman, winsOf } from "@/lib/lottery";
 
 export default function MembersPage() {
   const { state, ready, update } = useFund();
+  const { ask, notify } = useDialog();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [shares, setShares] = useState("1");
@@ -37,12 +39,12 @@ export default function MembersPage() {
     setShares("1");
   }
 
-  function removeMember(id: string, memberName: string) {
+  async function removeMember(id: string, memberName: string) {
     if (winsOf(id, state.rounds) > 0) {
-      alert("این عضو قبلاً وام گرفته و قابل حذف نیست.");
+      await notify("این عضو قبلاً وام گرفته و قابل حذف نیست.");
       return;
     }
-    if (!confirm(`«${memberName}» حذف شود؟`)) return;
+    if (!(await ask(`«${memberName}» حذف شود؟`, { confirmLabel: "حذف", danger: true }))) return;
     update((s) => ({
       ...s,
       members: s.members.filter((m) => m.id !== id),

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DialogProvider } from "@/components/DialogProvider";
 import { FundProvider } from "@/components/FundProvider";
 import { Nav } from "@/components/Nav";
 import "./globals.css";
@@ -20,10 +21,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;700;800&display=swap"
         />
       </head>
       <body>
+        <DialogProvider>
         <FundProvider>
           <Nav />
           <main className="container">{children}</main>
@@ -31,6 +33,7 @@ export default function RootLayout({
             اطلاعات فقط در همین مرورگر ذخیره می‌شود · از بخش تنظیمات نسخه پشتیبان بگیرید
           </footer>
         </FundProvider>
+        </DialogProvider>
       </body>
     </html>
   );

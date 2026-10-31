@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useFund } from "@/components/FundProvider";
+import { targetRotation, Wheel } from "@/components/Wheel";
 import {
   draw,
   eligibleEntries,
@@ -10,20 +11,25 @@ import {
   loanAmount,
   toman,
   totalShares,
+  type Entry,
   type Round,
 } from "@/lib/lottery";
 
-const SPIN_MS = 3200;
+const SPIN_MS = 6000;
 
 export default function DrawPage() {
   const { state, ready, update } = useFund();
-  const [display, setDisplay] = useState<string | null>(null);
+  const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
+  // Wheel layout is frozen from spin start until the next spin, so the
+  // winning slice stays visible after the round is saved.
+  const [frozen, setFrozen] = useState<Entry[] | null>(null);
   const [winner, setWinner] = useState<Round | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pending = useRef<Round | null>(null);
+  const fallback = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
+    if (fallback.current) clearTimeout(fallback.current);
   }, []);
 
   if (!ready) return <p className="muted">در حال بارگذاری…</p>;
@@ -31,8 +37,13 @@ export default function DrawPage() {
   const { members, rounds, paidIds } = state;
   const shares = totalShares(members);
   const entries = eligibleEntries(members, rounds);
+  const wheelEntries = frozen ?? entries;
   const finished = members.length > 0 && entries.length === 0;
   const unpaid = members.filter((m) => !paidIds.includes(m.id));
+  const allNumbers = members
+    .flatMap((m) => m.numbers.map((number) => ({ number, member: m })))
+    .sort((a, b) => a.number - b.number);
+  const wonNumbers = new Set(rounds.map((r) => r.winnerNumber));
 
   function togglePaid(id: string) {
     update((s) => ({
@@ -47,6 +58,16 @@ export default function DrawPage() {
     update((s) => ({ ...s, paidIds: paid ? s.members.map((m) => m.id) : [] }));
   }
 
+  function finishSpin() {
+    const round = pending.current;
+    if (!round) return;
+    pending.current = null;
+    if (fallback.current) clearTimeout(fallback.current);
+    setSpinning(false);
+    setWinner(round);
+    update((s) => ({ ...s, rounds: [...s.rounds, round], paidIds: [] }));
+  }
+
   function startDraw() {
     if (
       unpaid.length > 0 &&
@@ -57,26 +78,27 @@ export default function DrawPage() {
       return;
 
     const round = draw(state);
-    const names = entries.map((e) => e.name);
+    const index = entries.findIndex((e) => e.number === round.winnerNumber);
+    pending.current = round;
     setWinner(null);
-    setSpinning(true);
 
-    // Cycle through names, slowing down towards the end.
-    const start = performance.now();
-    const tick = () => {
-      const elapsed = performance.now() - start;
-      if (elapsed >= SPIN_MS) {
-        setDisplay(round.winnerName);
-        setSpinning(false);
-        setWinner(round);
-        update((s) => ({ ...s, rounds: [...s.rounds, round], paidIds: [] }));
-        return;
-      }
-      setDisplay(names[Math.floor(Math.random() * names.length)]);
-      const progress = elapsed / SPIN_MS;
-      timer.current = setTimeout(tick, 50 + progress * progress * 300);
-    };
-    tick();
+    // A new layout (previous winner removed) starts from rest without animating.
+    const layoutChanged =
+      frozen !== null &&
+      frozen.map((e) => e.number).join() !== entries.map((e) => e.number).join();
+    const from = layoutChanged ? 0 : rotation;
+    setFrozen(entries);
+    setSpinning(false);
+    setRotation(from);
+
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        setSpinning(true);
+        setRotation(targetRotation(from, index, entries.length));
+      }),
+    );
+    // In case transitionend never fires (hidden tab, reduced motion).
+    fallback.current = setTimeout(finishSpin, SPIN_MS + 800);
   }
 
   return (
@@ -108,38 +130,64 @@ export default function DrawPage() {
         </div>
       ) : (
         <>
-          <section className="card stage">
-            <div
-              className={`reel ${spinning ? "spinning" : ""} ${winner ? "winner" : ""}`}
-              aria-live="polite"
-            >
-              {display ?? (finished ? "🎉" : "؟")}
+          <section className="card wheel-stage">
+            <Wheel
+              entries={wheelEntries}
+              rotation={rotation}
+              spinning={spinning}
+              durationMs={SPIN_MS}
+              winnerNumber={winner?.winnerNumber ?? null}
+              onSpinEnd={finishSpin}
+            />
+            <div aria-live="polite">
+              {winner && !spinning && (
+                <div className="winner-card">
+                  <div className="winner-num">{faNum(winner.winnerNumber)}</div>
+                  <div>
+                    <div className="winner-name">🎉 {winner.winnerName}</div>
+                    <div>
+                      برنده وام <strong>{toman(winner.amount)}</strong> در دوره{" "}
+                      {faNum(winner.number)}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            {winner && !spinning && (
-              <p>
-                <strong>{winner.winnerName}</strong> برنده وام{" "}
-                <strong>{toman(winner.amount)}</strong> در دوره{" "}
-                {faNum(winner.number)} شد.
-              </p>
-            )}
-            {finished ? (
-              <p className="muted">
+            {finished && !spinning ? (
+              <p className="wheel-hint">
                 همه سهم‌ها وام خود را دریافت کرده‌اند. دوره صندوق به پایان رسید.
               </p>
             ) : (
-              <button
-                className="btn btn-primary btn-lg"
-                onClick={startDraw}
-                disabled={spinning}
-              >
-                {spinning ? "در حال قرعه‌کشی…" : "شروع قرعه‌کشی"}
-              </button>
+              <>
+                <div>
+                  <button
+                    className="btn btn-lg btn-spin"
+                    onClick={startDraw}
+                    disabled={spinning || pending.current !== null}
+                  >
+                    {spinning ? "در حال چرخش…" : "بچرخون!"}
+                  </button>
+                </div>
+                <p className="wheel-hint">
+                  {faNum(entries.length)} شماره روی گردونه
+                </p>
+              </>
             )}
-            {!finished && (
-              <p className="muted" style={{ marginBottom: 0 }}>
-                {faNum(entries.length)} سهم در قرعه‌کشی شرکت دارند
-              </p>
-            )}
+          </section>
+
+          <section className="card">
+            <h2>شماره‌های قرعه</h2>
+            <div className="legend">
+              {allNumbers.map(({ number, member }) => {
+                const won = wonNumbers.has(number);
+                return (
+                  <div key={number} className={`legend-item ${won ? "won" : ""}`}>
+                    <span className={`num-chip ${won ? "won" : ""}`}>{faNum(number)}</span>
+                    <span>{member.name}</span>
+                  </div>
+                );
+              })}
+            </div>
           </section>
 
           {!finished && (

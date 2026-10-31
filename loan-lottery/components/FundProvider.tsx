@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { emptyState, isFundState, type FundState } from "@/lib/lottery";
+import { emptyState, isFundState, normalizeState, type FundState } from "@/lib/lottery";
 
 const STORAGE_KEY = "loan-lottery:v1";
 
@@ -23,7 +23,7 @@ export function FundProvider({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (isFundState(parsed)) setState(parsed);
+        if (isFundState(parsed)) setState(normalizeState(parsed));
       }
     } catch {
       // Storage unavailable or corrupt: start empty.
@@ -42,7 +42,7 @@ export function FundProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <FundContext.Provider
-      value={{ state, ready, update: setState, replace: setState }}
+      value={{ state, ready, update: setState, replace: (next) => setState(normalizeState(next)) }}
     >
       {children}
     </FundContext.Provider>

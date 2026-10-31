@@ -47,6 +47,7 @@ export default function HistoryPage() {
                   <tr>
                     <th>دوره</th>
                     <th>تاریخ</th>
+                    <th>شماره</th>
                     <th>برنده</th>
                     <th>مبلغ وام</th>
                     <th>پرداخت‌کنندگان قسط</th>
@@ -57,6 +58,9 @@ export default function HistoryPage() {
                     <tr key={r.id}>
                       <td>{faNum(r.number)}</td>
                       <td>{faDate(r.date)}</td>
+                      <td>
+                        <span className="num-chip won">{faNum(r.winnerNumber)}</span>
+                      </td>
                       <td>
                         <strong>{r.winnerName}</strong>
                       </td>

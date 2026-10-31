@@ -3,6 +3,13 @@ export type Member = {
   name: string;
   phone: string;
   shares: number;
+  // Fixed lottery numbers, one per share.
+  numbers: number[];
+};
+
+export type Entry = {
+  number: number;
+  member: Member;
 };
 
 export type Round = {
@@ -11,6 +18,7 @@ export type Round = {
   date: string;
   winnerId: string;
   winnerName: string;
+  winnerNumber: number;
   amount: number;
   paidIds: string[];
 };
@@ -46,14 +54,21 @@ export function winsOf(memberId: string, rounds: Round[]): number {
   return rounds.filter((r) => r.winnerId === memberId).length;
 }
 
-// One entry per share that has not won yet.
-export function eligibleEntries(members: Member[], rounds: Round[]): Member[] {
-  const entries: Member[] = [];
-  for (const m of members) {
-    const remaining = m.shares - winsOf(m.id, rounds);
-    for (let i = 0; i < remaining; i++) entries.push(m);
+export function nextNumbers(members: Member[], count: number): number[] {
+  const max = members.reduce((m, x) => Math.max(m, ...x.numbers), 0);
+  return Array.from({ length: count }, (_, i) => max + i + 1);
+}
+
+// One entry per number that has not won yet, in number order.
+export function eligibleEntries(members: Member[], rounds: Round[]): Entry[] {
+  const won = new Set(rounds.map((r) => r.winnerNumber));
+  const entries: Entry[] = [];
+  for (const member of members) {
+    for (const number of member.numbers) {
+      if (!won.has(number)) entries.push({ number, member });
+    }
   }
-  return entries;
+  return entries.sort((a, b) => a.number - b.number);
 }
 
 export function randomIndex(length: number): number {
@@ -73,13 +88,14 @@ export function draw(
 ): Round {
   const entries = eligibleEntries(state.members, state.rounds);
   if (entries.length === 0) throw new Error("همه اعضا وام گرفته‌اند");
-  const winner = entries[pick(entries.length)];
+  const { number, member } = entries[pick(entries.length)];
   return {
     id: newId(),
     number: state.rounds.length + 1,
     date: new Date().toISOString(),
-    winnerId: winner.id,
-    winnerName: winner.name,
+    winnerId: member.id,
+    winnerName: member.name,
+    winnerNumber: number,
     amount: loanAmount(state),
     paidIds: [...state.paidIds],
   };
@@ -127,4 +143,28 @@ export function isFundState(value: unknown): value is FundState {
     Array.isArray(v.rounds) &&
     Array.isArray(v.paidIds)
   );
+}
+
+// Upgrades data saved before lottery numbers existed.
+export function normalizeState(state: FundState): FundState {
+  const members: Member[] = [];
+  for (const m of state.members) {
+    members.push(
+      Array.isArray(m.numbers) && m.numbers.length === m.shares
+        ? m
+        : { ...m, numbers: nextNumbers(members, m.shares) },
+    );
+  }
+  const used = new Set<number>();
+  const rounds = state.rounds.map((r) => {
+    if (typeof r.winnerNumber === "number") {
+      used.add(r.winnerNumber);
+      return r;
+    }
+    const member = members.find((m) => m.id === r.winnerId);
+    const number = member?.numbers.find((n) => !used.has(n)) ?? 0;
+    used.add(number);
+    return { ...r, winnerNumber: number };
+  });
+  return { ...state, members, rounds };
 }

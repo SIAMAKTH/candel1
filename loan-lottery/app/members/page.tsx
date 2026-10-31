@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useFund } from "@/components/FundProvider";
-import { faNum, newId, parseNumber, toman, winsOf } from "@/lib/lottery";
+import { faNum, newId, nextNumbers, parseNumber, toman, winsOf } from "@/lib/lottery";
 
 export default function MembersPage() {
   const { state, ready, update } = useFund();
@@ -21,7 +21,16 @@ export default function MembersPage() {
     const count = Math.max(1, parseNumber(shares));
     update((s) => ({
       ...s,
-      members: [...s.members, { id: newId(), name: trimmed, phone: phone.trim(), shares: count }],
+      members: [
+        ...s.members,
+        {
+          id: newId(),
+          name: trimmed,
+          phone: phone.trim(),
+          shares: count,
+          numbers: nextNumbers(s.members, count),
+        },
+      ],
     }));
     setName("");
     setPhone("");
@@ -91,6 +100,7 @@ export default function MembersPage() {
                   <th>#</th>
                   <th>نام</th>
                   <th>تماس</th>
+                  <th>شماره قرعه</th>
                   <th>سهم</th>
                   <th>قسط ماهانه</th>
                   <th>وضعیت</th>
@@ -106,6 +116,18 @@ export default function MembersPage() {
                       <td>{m.name}</td>
                       <td dir="ltr" style={{ textAlign: "right" }}>
                         {m.phone || "—"}
+                      </td>
+                      <td>
+                        <div className="row" style={{ gap: 4 }}>
+                          {m.numbers.map((n) => (
+                            <span
+                              key={n}
+                              className={`num-chip ${state.rounds.some((r) => r.winnerNumber === n) ? "won" : ""}`}
+                            >
+                              {faNum(n)}
+                            </span>
+                          ))}
+                        </div>
                       </td>
                       <td>{faNum(m.shares)}</td>
                       <td>{toman(m.shares * state.settings.contribution)}</td>

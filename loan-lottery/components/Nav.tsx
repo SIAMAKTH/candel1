@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { HomeIcon } from "./Icons";
 import { useStore } from "./StoreProvider";
 
 const links = [
@@ -21,8 +22,8 @@ export function Nav() {
     <header className="header">
       <div className="container header-inner">
         <Link href="/" className="brand">
-          <span className="brand-ticket" aria-hidden>
-            🎟
+          <span className="brand-mark">
+            <HomeIcon size={20} />
           </span>
           {store.siteName}
         </Link>

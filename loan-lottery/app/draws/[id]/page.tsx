@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Countdown } from "@/components/Countdown";
+import { CheckIcon, ChevronIcon, TrophyIcon } from "@/components/Icons";
 import { useDialog } from "@/components/DialogProvider";
 import { PrizeArt } from "@/components/PrizeArt";
 import { useStore } from "@/components/StoreProvider";
@@ -136,7 +137,9 @@ export default function CampaignPage() {
   return (
     <>
       <p className="crumbs">
-        <Link href="/draws">قرعه‌کشی‌ها</Link> ‹ {campaign.title}
+        <Link href="/draws">قرعه‌کشی‌ها</Link>
+        <ChevronIcon size={14} />
+        <span>{campaign.title}</span>
       </p>
 
       <section className="detail-head card">
@@ -145,7 +148,13 @@ export default function CampaignPage() {
         </div>
         <div className="detail-info">
           <span className={`status-pill ${open ? "is-live" : "is-done"}`}>
-            {open ? "● در حال فروش" : "قرعه‌کشی شد"}
+            {open ? (
+              <>
+                <span className="live-dot" /> در حال فروش
+              </>
+            ) : (
+              "قرعه‌کشی شد"
+            )}
           </span>
           <h1>{campaign.title}</h1>
           <p className="muted">{campaign.prize}</p>
@@ -171,7 +180,9 @@ export default function CampaignPage() {
           <section className="card buy-card">
             {bought ? (
               <div className="bought">
-                <h2>✓ خرید انجام شد</h2>
+                <h2>
+                  <CheckIcon size={22} /> خرید انجام شد
+                </h2>
                 <p>
                   {bought[0].buyerName} عزیز، {faNum(bought.length)} بلیط به نام شما ثبت شد. شماره
                   بلیط‌ها را نگه دارید:
@@ -263,7 +274,7 @@ export default function CampaignPage() {
                         {error}
                       </p>
                     )}
-                    <button className="btn btn-primary btn-lg" type="submit">
+                    <button className="btn btn-cta btn-lg" type="submit">
                       پرداخت و دریافت بلیط
                     </button>
                   </>
@@ -291,7 +302,9 @@ export default function CampaignPage() {
                   <div className="winner-card">
                     <div className="winner-num">{ticketNo(campaign.winnerNumber)}</div>
                     <div>
-                      <div className="winner-name">🎉 {winner?.buyerName ?? "—"}</div>
+                      <div className="winner-name">
+                        <TrophyIcon size={24} /> {winner?.buyerName ?? "—"}
+                      </div>
                       <div>
                         برنده {campaign.title}
                         {winner && (

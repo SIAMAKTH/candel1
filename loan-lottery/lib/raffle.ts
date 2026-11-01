@@ -1,4 +1,4 @@
-export type PrizeIcon = "car" | "gold" | "phone" | "home" | "cash";
+export type PrizeIcon = "fridge" | "washer" | "tv" | "stove" | "vacuum" | "aircon";
 
 export type Campaign = {
   id: string;
@@ -31,7 +31,7 @@ export type Store = {
 };
 
 export const emptyStore: Store = {
-  siteName: "بلیط شانس",
+  siteName: "خانه شانس",
   campaigns: [],
   tickets: [],
 };
@@ -40,12 +40,17 @@ export const FIRST_TICKET = 1001;
 export const MAX_PER_PURCHASE = 20;
 
 export const prizeIcons: { value: PrizeIcon; label: string }[] = [
-  { value: "car", label: "خودرو" },
-  { value: "gold", label: "سکه و طلا" },
-  { value: "phone", label: "موبایل و کالا" },
-  { value: "home", label: "خانه" },
-  { value: "cash", label: "جایزه نقدی" },
+  { value: "fridge", label: "یخچال" },
+  { value: "washer", label: "ماشین لباسشویی" },
+  { value: "tv", label: "تلویزیون" },
+  { value: "stove", label: "اجاق گاز" },
+  { value: "vacuum", label: "جاروبرقی" },
+  { value: "aircon", label: "کولر گازی" },
 ];
+
+export function prizeLabel(icon: PrizeIcon): string {
+  return prizeIcons.find((p) => p.value === icon)?.label ?? "لوازم خانگی";
+}
 
 export function newId(): string {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 8);

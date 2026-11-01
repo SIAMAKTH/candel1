@@ -21,7 +21,7 @@ const campaign: Campaign = {
   ticketPrice: 50_000,
   maxTickets: 5,
   drawAt: "",
-  icon: "car",
+  icon: "fridge",
   createdAt: "",
   winnerNumber: null,
   drawnAt: null,

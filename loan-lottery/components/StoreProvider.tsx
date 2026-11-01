@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { emptyStore, isStore, type Store } from "@/lib/raffle";
 
-const STORAGE_KEY = "lucky-ticket:v1";
+const STORAGE_KEY = "home-appliance-raffle:v1";
 
 type StoreContextValue = {
   store: Store;

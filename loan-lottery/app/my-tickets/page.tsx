@@ -57,7 +57,7 @@ export default function MyTicketsPage() {
       {groups.map(({ campaign, tickets }) => {
         const won = tickets.some((t) => t.number === campaign.winnerNumber);
         const status =
-          campaign.winnerNumber === null ? "در انتظار قرعه‌کشی" : won ? "🏆 برنده شدید!" : "برنده نشدید";
+          campaign.winnerNumber === null ? "در انتظار قرعه‌کشی" : won ? "برنده شدید!" : "برنده نشدید";
         return (
           <section key={campaign.id} className={`card ${won ? "card-win" : ""}`}>
             <div className="section-head">

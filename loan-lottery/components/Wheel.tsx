@@ -119,11 +119,11 @@ export function Wheel({
         }}
       >
         {entries.length === 0 ? (
-          <circle cx={C} cy={C} r={R_FACE} fill="#fff6e5" />
+          <circle cx={C} cy={C} r={R_FACE} fill="#f0fdf4" />
         ) : (
           entries.map((entry, i) => {
             const start = i * seg;
-            const red = i % 2 === 0;
+            const dark = i % 2 === 0;
             const won = entry.number === winnerNumber;
             const mid = start + seg / 2;
             const [tx, ty] = polar(R_FACE * (radial ? 0.64 : 0.72), mid);
@@ -132,11 +132,11 @@ export function Wheel({
             return (
               <g key={entry.number}>
                 {n === 1 ? (
-                  <circle cx={C} cy={C} r={R_FACE} fill={red ? "#c8102e" : "#fff6e5"} />
+                  <circle cx={C} cy={C} r={R_FACE} fill={dark ? "#047857" : "#f0fdf4"} />
                 ) : (
                   <path
                     d={slicePath(start, start + seg)}
-                    fill={red ? "#c8102e" : "#fff6e5"}
+                    fill={dark ? "#047857" : "#f0fdf4"}
                     stroke="#d9a440"
                     strokeWidth={1.5}
                   />
@@ -155,7 +155,7 @@ export function Wheel({
                   dominantBaseline="central"
                   fontSize={fontSize}
                   fontWeight={800}
-                  fill={red ? "#fff6e5" : "#c8102e"}
+                  fill={dark ? "#f0fdf4" : "#065f46"}
                 >
                   {faDigits(String(entry.number))}
                 </text>

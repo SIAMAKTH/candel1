@@ -5,8 +5,8 @@ import { StoreProvider } from "@/components/StoreProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "بلیط شانس",
-  description: "قرعه‌کشی آنلاین با خرید بلیط شانس و گردونه",
+  title: "خانه شانس",
+  description: "قرعه‌کشی لوازم خانگی با خرید بلیط شانس",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap"
         />
       </head>
       <body>

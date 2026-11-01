@@ -2,19 +2,41 @@
 
 import Link from "next/link";
 import { CampaignCard } from "@/components/CampaignCard";
+import { useState } from "react";
 import { useStore } from "@/components/StoreProvider";
-import { isOpen } from "@/lib/raffle";
+import { isOpen, prizeIcons, type PrizeIcon } from "@/lib/raffle";
 
 export default function DrawsPage() {
   const { store, ready } = useStore();
+  const [filter, setFilter] = useState<PrizeIcon | "all">("all");
   if (!ready) return <p className="muted">در حال بارگذاری…</p>;
 
-  const live = store.campaigns.filter(isOpen);
-  const done = store.campaigns.filter((c) => !isOpen(c));
+  const shown = store.campaigns.filter((c) => filter === "all" || c.icon === filter);
+  const live = shown.filter(isOpen);
+  const done = shown.filter((c) => !isOpen(c));
+  const used = prizeIcons.filter((p) => store.campaigns.some((c) => c.icon === p.value));
 
   return (
     <>
       <h1>قرعه‌کشی‌ها</h1>
+      {used.length > 1 && (
+        <div className="chips" role="group" aria-label="فیلتر بر اساس نوع جایزه">
+          {[{ value: "all" as const, label: "همه" }, ...used].map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              className="chip"
+              aria-pressed={filter === p.value}
+              onClick={() => setFilter(p.value)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {store.campaigns.length > 0 && shown.length === 0 && (
+        <p className="card empty">قرعه‌کشی‌ای از این نوع وجود ندارد.</p>
+      )}
       {store.campaigns.length === 0 && (
         <div className="card empty">
           هنوز قرعه‌کشی‌ای ساخته نشده است.

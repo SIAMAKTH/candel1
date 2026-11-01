@@ -3,13 +3,21 @@
 import Link from "next/link";
 import { CampaignCard } from "@/components/CampaignCard";
 import { Countdown } from "@/components/Countdown";
+import {
+  CheckIcon,
+  MegaphoneIcon,
+  PhoneIcon,
+  ShieldIcon,
+  TicketIcon,
+  TrophyIcon,
+} from "@/components/Icons";
 import { PrizeArt } from "@/components/PrizeArt";
 import { useStore } from "@/components/StoreProvider";
-import { Wheel } from "@/components/Wheel";
 import {
   faDate,
   faNum,
   isOpen,
+  prizeIcons,
   ticketNo,
   ticketsOf,
   toman,
@@ -17,15 +25,11 @@ import {
   type Campaign,
 } from "@/lib/raffle";
 
-const demoWheel = [500, 900, 100, 300, 700, 200, 400, 800, 600, 1000].map((number) => ({
-  number,
-}));
-
 const steps = [
-  { title: "انتخاب قرعه‌کشی", text: "از بین قرعه‌کشی‌های فعال، جایزه دلخواهتان را انتخاب کنید." },
-  { title: "خرید بلیط", text: "با نام و شماره موبایل بلیط بخرید و شماره بلیط اختصاصی بگیرید." },
-  { title: "چرخش گردونه", text: "در زمان اعلام‌شده، گردونه بین همه بلیط‌ها کاملاً تصادفی می‌چرخد." },
-  { title: "اعلام برنده", text: "شماره و نام برنده در صفحه برندگان برای همه نمایش داده می‌شود." },
+  { title: "جایزه‌ات را انتخاب کن", text: "یخچال، لباسشویی، تلویزیون یا هر قرعه‌کشی فعال دیگر." },
+  { title: "بلیط بخر", text: "با نام و موبایل، چند ثانیه‌ای بلیط با شماره اختصاصی بگیر." },
+  { title: "گردونه می‌چرخد", text: "در زمان اعلام‌شده، یکی از همه بلیط‌ها تصادفی انتخاب می‌شود." },
+  { title: "جایزه را تحویل بگیر", text: "شماره و نام برنده در صفحه برندگان اعلام می‌شود." },
 ];
 
 function byDrawTime(a: Campaign, b: Campaign) {
@@ -42,87 +46,134 @@ export default function HomePage() {
   const latestTicket = [...store.tickets].sort((a, b) =>
     b.purchasedAt.localeCompare(a.purchasedAt),
   )[0];
+  const minPrice = live.length ? Math.min(...live.map((c) => c.ticketPrice)) : 0;
 
-  function showHow() {
-    document.getElementById("how")?.scrollIntoView({ behavior: "smooth" });
-  }
+  const benefits = [
+    { Icon: ShieldIcon, title: "شفاف و تصادفی", text: "برنده با تولید عدد تصادفی امن از بین همه بلیط‌ها انتخاب می‌شود." },
+    { Icon: PhoneIcon, title: "پیگیری با موبایل", text: "با شماره موبایل، همه بلیط‌ها و نتیجه‌هایت را ببین." },
+    { Icon: MegaphoneIcon, title: "اعلام عمومی برنده", text: "شماره بلیط برنده برای همه شرکت‌کننده‌ها نمایش داده می‌شود." },
+    {
+      Icon: TicketIcon,
+      title: minPrice ? `بلیط از ${toman(minPrice)}` : "بلیط ارزان",
+      text: "با هزینه‌ای کم، شانس بردن لوازم خانگی نو را داشته باش.",
+    },
+  ];
 
   return (
     <>
       <section className="hero">
         <div className="hero-inner">
-          <div className="hero-wheel" aria-hidden>
-            <Wheel
-              entries={demoWheel}
-              rotation={0}
-              spinning={false}
-              durationMs={0}
-              winnerNumber={null}
-              onSpinEnd={() => {}}
-              idle
-            />
-          </div>
-
           <div className="hero-copy">
+            <span className="eyebrow">قرعه‌کشی لوازم خانگی</span>
             <h1 className="hero-title">
-              با بلیط شانس
+              با یک بلیط،
               <br />
-              برنده جوایز بزرگ شو!
+              <span className="hero-highlight">خانه‌ات را نو کن!</span>
             </h1>
             <p className="hero-lead">
-              در قرعه‌کشی‌های زنده شرکت کنید، بلیط بخرید، وضعیت بلیط‌هایتان را دنبال کنید و
-              برندگان را با شفافیت کامل ببینید.
+              در قرعه‌کشی یخچال، ماشین لباسشویی، تلویزیون و ده‌ها وسیله دیگر شرکت کن. بلیط
+              بخر، شماره‌ات را بگیر و چرخش گردونه را زنده ببین.
             </p>
             <div className="hero-actions">
-              <Link href="/draws" className="hero-btn hero-btn-primary">
-                قرعه‌کشی‌های فعال
+              <Link
+                href={featured ? `/draws/${featured.id}` : "/draws"}
+                className="btn btn-cta btn-lg"
+              >
+                <TicketIcon size={20} /> خرید بلیط
               </Link>
-              <button type="button" className="hero-btn hero-btn-ghost" onClick={showHow}>
-                چطور شرکت کنم؟ ‹
-              </button>
+              <Link href="/draws" className="btn btn-ghost-light btn-lg">
+                همه قرعه‌کشی‌ها
+              </Link>
             </div>
+            <dl className="hero-stats">
+              <div>
+                <dt>قرعه‌کشی فعال</dt>
+                <dd>{faNum(live.length)}</dd>
+              </div>
+              <div>
+                <dt>بلیط فروخته‌شده</dt>
+                <dd>{faNum(store.tickets.length)}</dd>
+              </div>
+              <div>
+                <dt>برنده تا امروز</dt>
+                <dd>{faNum(drawn.length)}</dd>
+              </div>
+            </dl>
           </div>
 
-          {featured ? (
-            <aside className="draw-card">
-              <div className="float-badge float-badge-gold">
-                <strong>★ {faNum(ticketsOf(store, featured.id).length)} بلیط</strong>
-                <span>در این قرعه‌کشی</span>
-              </div>
-              <div className={`draw-card-art art-${featured.icon}`}>
-                <span className="live-pill">● زنده</span>
-                <PrizeArt icon={featured.icon} className="draw-card-svg" />
-              </div>
-              <div className="draw-card-body">
-                <h2 className="draw-card-title">{featured.title}</h2>
-                <p className="draw-card-text">
-                  {featured.prize} · قیمت بلیط {toman(featured.ticketPrice)}
-                </p>
-                <Countdown target={featured.drawAt} />
-                <Link href={`/draws/${featured.id}`} className="draw-card-btn">
-                  همین حالا بلیط بخرید!
-                </Link>
-              </div>
-              {latestTicket && (
-                <div className="float-badge float-badge-blue">
-                  <strong>🎟 بلیط {ticketNo(latestTicket.number)}</strong>
-                  <span>ثبت شد ✓</span>
+          <div className="hero-visual">
+            <span className="shape shape-circle" aria-hidden />
+            <span className="shape shape-square" aria-hidden />
+            {featured ? (
+              <aside className="draw-card">
+                <div className="float-badge float-badge-sun">
+                  <TicketIcon size={16} />
+                  <span>
+                    <strong>{faNum(ticketsOf(store, featured.id).length)} بلیط</strong> در این قرعه‌کشی
+                  </span>
                 </div>
-              )}
-            </aside>
-          ) : (
-            <aside className="draw-card">
-              <div className="draw-card-body">
-                <h2 className="draw-card-title">به‌زودی…</h2>
-                <p className="draw-card-text">
-                  {ready ? "در حال حاضر قرعه‌کشی فعالی وجود ندارد." : "در حال بارگذاری…"}
-                </p>
-                <Link href="/admin" className="draw-card-btn">
-                  ساخت قرعه‌کشی
-                </Link>
-              </div>
-            </aside>
-          )}
+                <div className="draw-card-art">
+                  <span className="live-pill">
+                    <span className="live-dot" /> زنده
+                  </span>
+                  <PrizeArt icon={featured.icon} className="draw-card-svg" />
+                </div>
+                <div className="draw-card-body">
+                  <h2 className="draw-card-title">{featured.title}</h2>
+                  <p className="draw-card-text">
+                    {featured.prize} · بلیط {toman(featured.ticketPrice)}
+                  </p>
+                  <Countdown target={featured.drawAt} />
+                  <Link href={`/draws/${featured.id}`} className="btn btn-cta btn-block">
+                    همین حالا بلیط بخر
+                  </Link>
+                </div>
+                {latestTicket && (
+                  <div className="float-badge float-badge-mint">
+                    <CheckIcon size={16} />
+                    <span>
+                      بلیط <strong>{ticketNo(latestTicket.number)}</strong> ثبت شد
+                    </span>
+                  </div>
+                )}
+              </aside>
+            ) : (
+              <aside className="draw-card">
+                <div className="draw-card-body">
+                  <h2 className="draw-card-title">به‌زودی…</h2>
+                  <p className="draw-card-text">
+                    {ready ? "در حال حاضر قرعه‌کشی فعالی وجود ندارد." : "در حال بارگذاری…"}
+                  </p>
+                  <Link href="/admin" className="btn btn-cta btn-block">
+                    ساخت قرعه‌کشی
+                  </Link>
+                </div>
+              </aside>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="cats-title">
+        <h2 id="cats-title" className="section-title">
+          چه جایزه‌ای می‌خواهی؟
+        </h2>
+        <div className="cat-grid">
+          {prizeIcons.map((p) => {
+            const first = live.find((c) => c.icon === p.value);
+            const count = live.filter((c) => c.icon === p.value).length;
+            return (
+              <Link
+                key={p.value}
+                href={first ? `/draws/${first.id}` : "/draws"}
+                className="cat-tile"
+              >
+                <PrizeArt icon={p.value} className="cat-art" />
+                <strong>{p.label}</strong>
+                <span>{count ? `${faNum(count)} قرعه‌کشی فعال` : "به‌زودی"}</span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -141,6 +192,18 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      <section className="section benefits" aria-label="چرا خانه شانس">
+        {benefits.map(({ Icon, title, text }) => (
+          <div key={title} className="benefit">
+            <span className="benefit-icon">
+              <Icon size={24} />
+            </span>
+            <h3>{title}</h3>
+            <p>{text}</p>
+          </div>
+        ))}
+      </section>
 
       <section id="how" className="section">
         <h2 className="section-title">چطور شرکت کنم؟</h2>
@@ -163,25 +226,37 @@ export default function HomePage() {
               همه برندگان
             </Link>
           </div>
-          <div className="legend">
+          <div className="winner-strip">
             {drawn.slice(0, 4).map((c) => {
               const w = winnerTicket(store, c);
               return (
-                <div key={c.id} className="legend-item">
-                  <span className="num-chip won">{ticketNo(c.winnerNumber!)}</span>
-                  <span>
+                <Link key={c.id} href={`/draws/${c.id}`} className="winner-chip">
+                  <PrizeArt icon={c.icon} className="winner-chip-art" />
+                  <span className="winner-chip-text">
                     <strong>{w?.buyerName}</strong>
-                    <span className="muted">
-                      {" "}
-                      · {c.title} · {faDate(c.drawnAt!)}
+                    <span>
+                      {c.title} · {faDate(c.drawnAt!)}
                     </span>
                   </span>
-                </div>
+                  <span className="num-chip won">
+                    <TrophyIcon size={14} /> {ticketNo(c.winnerNumber!)}
+                  </span>
+                </Link>
               );
             })}
           </div>
         </section>
       )}
+
+      <section className="cta-band">
+        <div>
+          <h2>نوبت توست که برنده شوی</h2>
+          <p>قرعه‌کشی بعدی نزدیک است. همین حالا بلیط بخر.</p>
+        </div>
+        <Link href={featured ? `/draws/${featured.id}` : "/draws"} className="btn btn-dark btn-lg">
+          <TicketIcon size={20} /> شرکت در قرعه‌کشی
+        </Link>
+      </section>
     </>
   );
 }

@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { TimeLeft } from "./Countdown";
+import { TrophyIcon } from "./Icons";
 import { PrizeArt } from "./PrizeArt";
 import {
   faNum,
   isOpen,
+  prizeLabel,
   ticketNo,
   ticketsOf,
   toman,
@@ -24,11 +26,18 @@ export function CampaignCard({ store, campaign }: { store: Store; campaign: Camp
     <article className="campaign-card">
       <div className={`campaign-art art-${campaign.icon}`}>
         <span className={`status-pill ${open ? "is-live" : "is-done"}`}>
-          {open ? "● در حال فروش" : "قرعه‌کشی شد"}
+          {open ? (
+            <>
+              <span className="live-dot" /> در حال فروش
+            </>
+          ) : (
+            "قرعه‌کشی شد"
+          )}
         </span>
         <PrizeArt icon={campaign.icon} className="campaign-art-svg" />
       </div>
       <div className="campaign-body">
+        <span className="campaign-cat">{prizeLabel(campaign.icon)}</span>
         <h3>{campaign.title}</h3>
         <p className="muted campaign-prize">{campaign.prize}</p>
         <div className="campaign-meta">
@@ -53,11 +62,11 @@ export function CampaignCard({ store, campaign }: { store: Store; campaign: Camp
           </>
         ) : (
           <p className="winner-line">
-            🏆 بلیط <strong>{ticketNo(campaign.winnerNumber!)}</strong>
+            <TrophyIcon size={16} /> بلیط <strong>{ticketNo(campaign.winnerNumber!)}</strong>
             {winner && <> · {winner.buyerName}</>}
           </p>
         )}
-        <Link href={`/draws/${campaign.id}`} className={`btn ${open ? "btn-primary" : ""} btn-block`}>
+        <Link href={`/draws/${campaign.id}`} className={`btn ${open ? "btn-cta" : ""} btn-block`}>
           {open ? "خرید بلیط" : "مشاهده نتیجه"}
         </Link>
       </div>

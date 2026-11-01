@@ -1435,7 +1435,7 @@ th {
 .search-form {
   display: flex;
   gap: 8px;
-  align-items: end;
+  align-items: flex-end;
   flex-wrap: wrap;
 }
 
